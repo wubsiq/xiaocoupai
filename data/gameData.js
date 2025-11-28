@@ -272,6 +272,28 @@ export const ITEM_TEMPLATES = [
     value: 2.5,
     basePrice: 700,
     icon: 'fa-venus'
+  },
+  // 新增老婆本道具
+  {
+    id: 'wife_fund',
+    name: '老婆本★★★',
+    desc: '当前玩家得分增加5478，出售时需要扣除5478积分',
+    type: 'score_boost',
+    target: 'score',
+    value: 5478,
+    basePrice: 0,
+    icon: 'fa-heart'
+  },
+  // 新增棺材本道具
+  {
+    id: 'coffin_fund',
+    name: '棺材本★★★★★',
+    desc: '当前玩家得分增加12871，出售时需要扣除12871积分',
+    type: 'score_boost',
+    target: 'score',
+    value: 12871,
+    basePrice: 0,
+    icon: 'fa-coffin'
   }
 ];
 

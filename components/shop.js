@@ -274,6 +274,31 @@ export function sellItem(itemId) {
   // 添加积分
   gameState.totalScore += item.sellPrice;
   
+  // 特殊处理：出售老婆本或棺材本道具需要扣除相应积分
+  if (item.id === 'wife_fund' || item.id === 'coffin_fund') {
+    let deduction = 0;
+    let itemName = '';
+    
+    if (item.id === 'wife_fund') {
+      deduction = 5478;
+      itemName = '老婆本';
+    } else if (item.id === 'coffin_fund') {
+      deduction = 12871;
+      itemName = '棺材本';
+    }
+    
+    // 检查玩家是否有足够的积分来赎回
+    if (gameState.totalScore >= deduction) {
+      gameState.totalScore -= deduction;
+    } else {
+      // 积分不足，取消出售操作并恢复原状
+      gameState.totalScore -= item.sellPrice; // 撤销刚才增加的积分
+      saveGameState(gameState);
+      showToast(`积分不足，无法出售${itemName}！需要${deduction}积分才能赎回。`, 'error');
+      return;
+    }
+  }
+  
   // 移除道具
   gameState.ownedItems.splice(itemIndex, 1);
   

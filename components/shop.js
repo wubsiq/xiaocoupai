@@ -54,32 +54,29 @@ export function renderShopItems(gameState) {
     const isOwned = gameState.ownedItems && gameState.ownedItems.some(owned => owned.id === item.id);
     
     itemEl.innerHTML = `
-      <div class="flex items-start gap-3">
-        <div class="bg-shop/10 text-shop w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0">
-          <i class="fa ${item.icon}"></i>
-        </div>
+      <div class="flex flex-col gap-2">
         <div class="flex-1">
           <h4 class="font-bold text-gray-800 flex items-center gap-2">
             ${item.name}
             ${isOwned ? '<span class="bg-success/10 text-success text-xs px-2 py-0.5 rounded-full">已拥有</span>' : ''}
           </h4>
           <p class="text-xs text-gray-600 mt-1">${item.desc}</p>
-          <div class="flex justify-between items-center mt-3">
-            <div>
-              <span class="text-primary font-bold">${item.price}</span>
-              <span class="text-xs text-gray-500">积分</span>
-            </div>
-            <div class="flex gap-2">
-              ${!isOwned ? `
-                <button class="buy-item bg-shop text-white text-xs px-3 py-1 rounded-lg hover:bg-shop/90 transition-all" data-id="${item.id}">
-                  购买
-                </button>
-              ` : `
-                <button class="sell-item bg-danger text-white text-xs px-3 py-1 rounded-lg hover:bg-danger/90 transition-all" data-id="${item.id}">
-                  出售（${item.sellPrice}）
-                </button>
-              `}
-            </div>
+        </div>
+        <div class="flex justify-between items-center mt-2">
+          <div>
+            <span class="text-primary font-bold">${item.price}</span>
+            <span class="text-xs text-gray-500">积分</span>
+          </div>
+          <div>
+            ${!isOwned ? `
+              <button class="buy-item bg-shop text-white text-xs px-3 py-1 rounded-lg hover:bg-shop/90 transition-all" data-id="${item.id}">
+                购买
+              </button>
+            ` : `
+              <button class="sell-item bg-danger text-white text-xs px-3 py-1 rounded-lg hover:bg-danger/90 transition-all" data-id="${item.id}">
+                出售（${item.sellPrice}）
+              </button>
+            `}
           </div>
         </div>
       </div>
@@ -115,11 +112,8 @@ export function renderOwnedItems(gameState) {
     itemEl.className = 'flex items-center justify-between p-3 bg-gray-50 rounded-lg';
     
     itemEl.innerHTML = `
-      <div class="flex items-center gap-3">
-        <div class="bg-shop/10 text-shop w-8 h-8 rounded-full flex items-center justify-center">
-          <i class="fa ${item.icon || 'fa-magic'} text-sm"></i>
-        </div>
-        <div>
+      <div class="flex flex-col gap-1">
+        <div class="flex-1">
           <h4 class="font-bold text-gray-800 text-sm">${item.name}</h4>
           <p class="text-xs text-gray-600 mt-1">${item.desc}</p>
           <div class="flex gap-2 mt-2 text-xs">
@@ -127,10 +121,12 @@ export function renderOwnedItems(gameState) {
             <span class="bg-danger/10 text-danger px-2 py-0.5 rounded">出售：${item.sellPrice}积分</span>
           </div>
         </div>
+        <div class="flex justify-end mt-2">
+          <button class="sell-item-sidebar bg-danger text-white text-xs px-3 py-1 rounded-lg hover:bg-danger/90 transition-all" data-id="${item.id}">
+            售出
+          </button>
+        </div>
       </div>
-      <button class="sell-item-sidebar text-danger hover:text-danger/80 p-1" data-id="${item.id}">
-        <i class="fa fa-trash"></i>
-      </button>
     `;
     
     ownedItemsEl.appendChild(itemEl);

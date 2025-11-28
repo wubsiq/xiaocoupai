@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>小丑牌游戏 - 主页</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  
+  <!-- Tailwind配置 -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#1E40AF', // 主色（深蓝）
+            secondary: '#F97316', // 辅助色（橙色）
+            success: '#10B981', // 成功色
+            danger: '#EF4444', // 危险色
+            club: '#000000', // 梅花（黑）
+            diamond: '#EF4444', // 方块（红）
+            heart: '#EF4444', // 红桃（红）
+            spade: '#000000', // 黑桃（黑）
+            joker: '#8B5CF6', // 小丑（紫）
+            neutral: '#64748B', // 中性色
+            shop: '#8B5CF6', // 商城色
+            item: '#EC4899', // 道具色
+          },
+          fontFamily: {
+            game: ['"Arial Rounded MT Bold"', 'Arial', 'sans-serif']
+          },
+        }
+      }
+    }
+  </script>
+  
+  <style type="text/tailwindcss">
+    @layer utilities {
+      .card-shadow {
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2), 0 0 0 1px rgba(0,0,0,0.1);
+      }
+      .card-selected {
+        transform: translateY(-15px);
+        box-shadow: 0 8px 16px rgba(30, 64, 175, 0.4), 0 0 0 2px #1E40AF;
+      }
+      .card-hover {
+        transition: all 0.2s ease;
+      }
+      .card-hover:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 6px 12px rgba(0,0,0,0.25);
+      }
+      .card-point-badge {
+        background: rgba(30, 64, 175, 0.1);
+        color: #1E40AF;
+        font-size: 0.75rem;
+        font-weight: bold;
+        padding: 2px 6px;
+        border-radius: 4px;
+        position: absolute;
+        bottom: -16px;
+        left: 50%;
+        transform: translateX(-50%);
+      }
+      .item-badge {
+        background: rgba(236, 72, 153, 0.1);
+        color: #EC4899;
+        font-size: 0.7rem;
+        font-weight: bold;
+        padding: 1px 4px;
+        border-radius: 3px;
+      }
+      .sidebar-slide {
+        transition: transform 0.3s ease-in-out;
+      }
+      .toast-notification {
+        z-index: 9999 !important;
+      }
+    }
+  </style>
+</head>
+<body class="bg-gray-100 min-h-screen font-game text-gray-800 overflow-x-hidden" style="background: url('./bg/bg.png') no-repeat center center fixed; background-size: cover;">
+  <!-- 导航栏 -->
+  <nav class="bg-primary/90 text-white py-4 px-6 shadow-md backdrop-blur-sm">
+    <div class="container mx-auto flex justify-between items-center">
+      <h1 class="text-xl font-bold">小丑牌游戏</h1>
+      <div class="flex gap-4">
+        <a href="#game" class="hover:text-secondary transition-colors">
+          <i class="fa fa-gamepad mr-1"></i> 游戏主页
+        </a>
+        <a href="#shop" class="hover:text-secondary transition-colors">
+          <i class="fa fa-shopping-cart mr-1"></i> 道具商城
+        </a>
+        <a href="#rules" class="hover:text-secondary transition-colors">
+          <i class="fa fa-book mr-1"></i> 游戏规则
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container mx-auto px-4 py-6 max-w-8xl relative" id="game-page">
+    <!-- 游戏进度与状态区 -->
+    <div class="bg-white/50 backdrop-blur-sm rounded-xl shadow-md p-4 mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+      <!-- 大局进度 -->
+      <div class="flex flex-col items-center p-3 border rounded-lg bg-white/90">
+        <h3 class="text-sm text-gray-500 mb-1">当前进度</h3>
+        <div class="flex items-center gap-2">
+          <span id="current-round" class="text-2xl font-bold text-primary">1</span>
+          <span class="text-gray-500">/ 8 大局</span>
+          <span id="current-subround" class="text-sm bg-secondary/20 text-secondary px-2 py-1 rounded-full">
+            第1小局
+          </span>
+        </div>
+      </div>
+
+      <!-- 得分统计 -->
+      <div class="flex flex-col items-center p-3 border rounded-lg bg-white/90">
+        <h3 class="text-sm text-gray-500 mb-1">累计总分（8大局通用）</h3>
+        <div class="flex items-end gap-2">
+          <span id="total-score" class="text-2xl font-bold text-success">0</span>
+          <span class="text-gray-500">分</span>
+        </div>
+        <div class="text-xs text-gray-500 mt-1">
+          本局得分: <span id="current-subround-score" class="text-primary font-medium">0</span> 分
+        </div>
+      </div>
+
+      <!-- 晋级条件 -->
+      <div class="flex flex-col items-center p-3 border rounded-lg bg-white/90">
+        <h3 class="text-sm text-gray-500 mb-1">第<span id="round-label" class="text-primary">1</span>大局晋级要求</h3>
+        <div class="flex items-end gap-2">
+          <span id="required-score" class="text-2xl font-bold text-danger">150</span>
+          <span class="text-gray-500">分</span>
+        </div>
+        <div id="round-status" class="text-xs mt-1 px-2 py-1 rounded-full bg-gray-100 text-gray-600">
+          未达标
+        </div>
+      </div>
+    </div>
+
+    <!-- 游戏主区域 -->
+    <div class="grid grid-cols-1 xl:grid-cols-12 gap-6 mb-8">
+      <!-- 左侧：各牌型当前倍率列表 -->
+      <div class="xl:col-span-3 bg-white/45 backdrop-blur-sm rounded-xl shadow-md p-6">
+        <h3 class="text-lg font-bold text-primary mb-4 flex items-center gap-1">
+          <i class="fa fa-list-ol text-secondary"></i> 牌型倍率一览
+        </h3>
+        <div id="hand-multipliers-list" class="grid grid-cols-1 gap-3">
+          <!-- 牌型倍率列表将由JS动态生成 -->
+        </div>
+      </div>
+      
+      <!-- 中间：玩家手牌区 -->
+      <div class="xl:col-span-6 bg-white/90 backdrop-blur-sm rounded-xl shadow-md p-6">
+        <h2 class="text-xl font-bold text-primary mb-4 flex items-center gap-2">
+          <i class="fa fa-hand-paper-o"></i> 你的手牌（选择5张组成牌型）
+        </h2>
+        <div id="player-hand" class="grid grid-cols-4 sm:grid-cols-8 gap-6 justify-items-center min-h-[240px]">
+          <!-- 手牌由JS生成 -->
+          <div class="col-span-4 text-gray-400 text-center py-8">
+            <i class="fa fa-card text-4xl mb-2"></i>
+            <p>点击"开始游戏"发牌</p>
+          </div>
+        </div>
+        
+        <!-- 操作按钮 -->
+        <div class="flex flex-wrap justify-end gap-4 mt-8">
+          <button id="start-game" class="bg-primary hover:bg-primary/90 text-white px-8 py-3 rounded-lg flex items-center gap-2 transition-all shadow-md hover:shadow-lg">
+            <i class="fa fa-play"></i> 开始游戏
+          </button>
+          <button id="confirm-cards" class="bg-success hover:bg-success/90 text-white px-8 py-3 rounded-lg flex items-center gap-2 transition-all shadow-md hover:shadow-lg hidden">
+            <i class="fa fa-check"></i> 确认选牌（锁定得分）
+          </button>
+          <button id="next-subround" class="bg-secondary hover:bg-secondary/90 text-white px-8 py-3 rounded-lg flex items-center gap-2 transition-all shadow-md hover:shadow-lg hidden">
+            <i class="fa fa-arrow-right"></i> 下一小局
+          </button>
+          <button id="next-round" class="bg-primary hover:bg-primary/90 text-white px-8 py-3 rounded-lg flex items-center gap-2 transition-all shadow-md hover:shadow-lg hidden">
+            <i class="fa fa-level-up"></i> 进入第<span id="next-round-number" class="font-bold">2</span>大局
+          </button>
+          <button id="restart-game" class="bg-gray-600 hover:bg-gray-700 text-white px-8 py-3 rounded-lg flex items-center gap-2 transition-all shadow-md hover:shadow-lg absolute bottom-6 right-6">
+            <i class="fa fa-refresh"></i> 重新开始
+          </button>
+        </div>
+      </div>
+
+      <!-- 右侧：实时预计算与计分区 -->
+      <div class="xl:col-span-3 bg-white/45 backdrop-blur-sm rounded-xl shadow-md p-6">
+        <h2 class="text-xl font-bold text-primary mb-4 flex items-center gap-2">
+          <i class="fa fa-calculator"></i> 实时预计算
+        </h2>
+        
+        <!-- 选中的牌型 -->
+        <div class="bg-white/70 rounded-lg p-4 mb-6">
+          <h3 class="text-sm text-gray-500 mb-3">已选牌型（当前<span id="selected-count" class="text-primary font-bold">0</span>/5张）</h3>
+          <div id="selected-cards" class="grid grid-cols-5 gap-3 min-h-[120px]">
+            <div class="col-span-5 text-gray-400 text-center py-4">
+              请选择牌组成牌型
+            </div>
+          </div>
+        </div>
+        
+        <!-- 实时总点数 -->
+        <div class="bg-white/70 rounded-lg p-4 mb-6">
+          <h3 class="text-sm text-gray-500 mb-3 flex items-center gap-1">
+            <i class="fa fa-calculator text-primary"></i> 当前总点数
+            <span id="point-boost-badge" class="item-badge hidden">+0</span>
+          </h3>
+          <div class="flex justify-center items-center h-20 bg-white/50 rounded-lg border border-gray-200">
+            <span id="real-time-point-sum" class="text-4xl font-bold text-primary">0</span>
+          </div>
+          <div id="point-effect-text" class="text-xs text-gray-500 mt-2 text-center hidden">
+            道具加成：小丑牌点数+5（基础10→15）
+          </div>
+        </div>
+        
+        <!-- 牌型预判 -->
+        <div class="bg-white/70 rounded-lg p-4 mb-6">
+          <h3 class="text-sm text-gray-500 mb-3 flex items-center gap-1">
+            <i class="fa fa-lightbulb-o text-secondary"></i> 牌型预判（选满5张显示）
+            <span id="multiplier-boost-badge" class="item-badge hidden">×1.5</span>
+          </h3>
+          <div id="hand-prediction" class="flex flex-col justify-center items-center h-24 bg-white/50 rounded-lg border border-gray-200 p-4 text-center">
+            <span id="prediction-text" class="text-gray-400">选满5张牌自动预判最大牌型</span>
+            <div id="prediction-details" class="mt-2 hidden">
+              <span id="predicted-hand-name" class="text-lg font-bold text-secondary"></span>
+              <span id="predicted-multiplier" class="text-sm text-gray-600 ml-2"></span>
+            </div>
+          </div>
+          <div id="multiplier-effect-text" class="text-xs text-gray-500 mt-2 text-center hidden">
+            道具加成：同花顺倍率×2（基础10→20）
+          </div>
+        </div>
+        
+        <!-- 最终得分预览 -->
+        <div class="bg-primary/10 backdrop-blur-sm rounded-lg p-4 border border-primary/20 bg-white/70">
+          <h3 class="text-sm text-primary mb-3 flex items-center gap-1">
+            <i class="fa fa-trophy text-primary"></i> 预计得分（实时计算）
+            <span id="final-score-boost-badge" class="item-badge hidden">+25%</span>
+          </h3>
+          <div class="flex justify-center items-center h-20 bg-white/50 rounded-lg border border-primary/30">
+            <span id="predicted-total-score" class="text-4xl font-bold text-success">0</span>
+          </div>
+          <div id="final-score-calc" class="text-xs text-gray-500 mt-2 text-center">
+            计算公式：总点数 × 牌型系数（道具加成已计入）
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 游戏规则页 -->
+  <div class="container mx-auto px-4 py-6 max-w-4xl hidden" id="rules-page">
+    <div class="bg-white/80 backdrop-blur-sm rounded-xl shadow-md p-6">
+      <h2 class="text-2xl font-bold text-primary mb-6">游戏规则（道具版）</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-gray-700">
+        <div class="bg-white/70 p-4 rounded-lg">
+          <h3 class="font-bold text-primary mb-3 flex items-center gap-2">
+            <i class="fa fa-gamepad"></i> 基础规则
+          </h3>
+          <ul class="space-y-2 text-sm">
+            <li class="flex items-start gap-2">
+              <i class="fa fa-check-circle text-success mt-1"></i>
+              <p>每大局开局发8张牌，玩家选择5张组成最优牌型，4小局得分累计计入总得分</p>
+            </li>
+            <li class="flex items-start gap-2">
+              <i class="fa fa-check-circle text-success mt-1"></i>
+              <p>单牌点数：3=1分、4=2分、5=3分、6=4分、7=5分、8=6分、9=7分、10=8分、J=9分、Q=10分、K=11分、A=12分、2=13分、小丑=10分</p>
+            </li>
+            <li class="flex items-start gap-2">
+              <i class="fa fa-check-circle text-success mt-1"></i>
+              <p>总得分 = 单牌点数总和 × 牌型系数（按德州扑克牌型判定）</p>
+            </li>
+            <li class="flex items-start gap-2">
+              <i class="fa fa-check-circle text-success mt-1"></i>
+              <p>晋级要求：第1大局150分，后续每局双倍上升（150→300→600→1200→2400→4800→9600→19200）</p>
+            </li>
+          </ul>
+        </div>
+        <div class="bg-white/70 p-4 rounded-lg">
+          <h3 class="font-bold text-primary mb-3 flex items-center gap-2">
+            <i class="fa fa-magic"></i> 道具规则
+          </h3>
+          <ul class="space-y-2 text-sm">
+            <li class="flex items-start gap-2">
+              <i class="fa fa-check-circle text-success mt-1"></i>
+              <p>使用累计积分购买道具，可提升单牌点数/牌型倍率</p>
+            </li>
+            <li class="flex items-start gap-2">
+              <i class="fa fa-check-circle text-success mt-1"></i>
+              <p>道具支持买卖（卖出半价），效果实时显示在游戏界面</p>
+            </li>
+            <li class="flex items-start gap-2">
+              <i class="fa fa-check-circle text-success mt-1"></i>
+              <p>小丑牌为万能牌，可替代任意牌组成牌型，点数可通过道具提升</p>
+            </li>
+            <li class="flex items-start gap-2">
+              <i class="fa fa-check-circle text-success mt-1"></i>
+              <p>双刃剑道具：高收益但附带惩罚效果，需谨慎使用</p>
+            </li>
+          </ul>
+        </div>
+        <div class="col-span-1 md:col-span-2 bg-white/70 p-4 rounded-lg">
+          <h3 class="font-bold text-primary mb-3 flex items-center gap-2">
+            <i class="fa fa-star"></i> 牌型系数表
+          </h3>
+          <div class="grid grid-cols-2 sm:grid-cols-5 gap-2 text-sm">
+            <div class="bg-white p-2 rounded text-center">单牌：×1</div>
+            <div class="bg-white p-2 rounded text-center">对子：×2</div>
+            <div class="bg-white p-2 rounded text-center">两对：×3</div>
+            <div class="bg-white p-2 rounded text-center">三条：×4</div>
+            <div class="bg-white p-2 rounded text-center">顺子：×5</div>
+            <div class="bg-white p-2 rounded text-center">同花：×6</div>
+            <div class="bg-white p-2 rounded text-center">葫芦：×7</div>
+            <div class="bg-white p-2 rounded text-center">四条：×8</div>
+            <div class="bg-white p-2 rounded text-center col-span-2">同花顺：×10</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 道具商城页 -->
+  <div class="container mx-auto px-4 py-6 max-w-4xl hidden" id="shop-page">
+    <div class="bg-white/80 backdrop-blur-sm rounded-xl shadow-md p-6">
+      <h2 class="text-2xl font-bold text-shop mb-6 flex items-center gap-2">
+        <i class="fa fa-shopping-cart"></i> 道具商城
+      </h2>
+      
+      <!-- 商城余额 -->
+      <div class="bg-white/70 rounded-lg p-4 mb-6 flex justify-between items-center">
+        <h3 class="text-lg font-medium text-gray-700">可用积分</h3>
+        <span id="shop-balance" class="text-2xl font-bold text-primary">0</span>
+      </div>
+
+      <!-- 我的道具 -->
+      <div class="mb-6">
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="text-lg font-bold text-gray-800">我的道具（<span id="item-count">0</span>）<span id="max-items-info" class="text-sm font-normal text-gray-500 ml-2"></span></h3>
+        </div>
+        
+        <div id="owned-items" class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+          <div class="col-span-2 text-gray-400 text-center py-6 bg-white/70 rounded-lg">
+            <i class="fa fa-bag text-3xl mb-2"></i>
+            <p>暂无道具，去商城购买吧</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- 商品列表 -->
+      <div>
+        <h3 class="text-lg font-bold text-gray-800 mb-4">道具列表</h3>
+        <button id="refresh-shop" class="bg-shop/10 text-shop px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-shop/20 transition-all">
+            <i class="fa fa-refresh"></i> 刷新商品
+          </button>
+        <div id="shop-items" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- 商品由JS生成 -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 胜利/失败弹窗 -->
+  <div id="game-modal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden">
+    <div class="bg-white/90 backdrop-blur-sm rounded-xl shadow-xl p-8 max-w-md w-full mx-4 text-center">
+      <div id="modal-icon" class="text-5xl mb-4 text-success">
+        <i class="fa fa-trophy"></i>
+      </div>
+      <h2 id="modal-title" class="text-2xl font-bold mb-2 text-primary">游戏胜利！</h2>
+      <p id="modal-desc" class="text-gray-600 mb-6">恭喜你完成所有<span id="total-rounds-display">8</span>大局，最终总得分：<span id="final-total-score" class="text-success font-bold">0</span> 分！</p>
+      <button id="modal-restart" class="bg-primary hover:bg-primary/90 text-white px-8 py-3 rounded-lg transition-all shadow-md hover:shadow-lg">
+        重新开始游戏
+      </button>
+    </div>
+  </div>
+
+  <!-- 引入模块化JavaScript -->
+  <script type="module">
+    // 导入所有模块
+    import { initGameState, getGameState, saveGameState, resetGameState } from './utils/stateManager.js';
+    import { renderPlayerHand, updateSelectedCardsUI, toggleCardSelection, showToast } from './components/playerHand.js';
+    import { startGame, confirmSelectedCards, nextSubround, nextRound, showGameResult, getTotalRounds } from './components/gameLogic.js';
+    import { updatePreCalculationUI } from './components/preCalculation.js';
+    import { refreshShopItems, renderShopItems, renderOwnedItems, buyItem, sellItem } from './components/shop.js';
+    import { ROUND_REQUIREMENTS } from './data/gameData.js';
+    
+    // 修复：确保所有需要的函数都在正确的模块中
+    // showToast 函数已经在 playerHand.js 中导入
+    // ROUND_REQUIREMENTS 已经从 gameData.js 导入
+    
+    // ========== 页面路由管理 ==========
+    function initRouter() {
+      // 初始显示游戏页
+      showPage('game');
+      
+      // 监听导航点击
+      document.querySelectorAll('a[href^="#"]').forEach(link => {
+        link.addEventListener('click', (e) => {
+          e.preventDefault();
+          const page = e.target.getAttribute('href').substring(1) || e.currentTarget.getAttribute('href').substring(1);
+          showPage(page);
+        });
+      });
+      
+      // 监听hash变化
+      window.addEventListener('hashchange', () => {
+        const page = window.location.hash.substring(1) || 'game';
+        showPage(page);
+      });
+    }
+
+    // 显示指定页面
+    function showPage(pageName) {
+      // 隐藏所有页面
+      document.getElementById('game-page').classList.add('hidden');
+      document.getElementById('shop-page').classList.add('hidden');
+      document.getElementById('rules-page').classList.add('hidden');
+      
+      // 显示目标页面
+      const targetPage = document.getElementById(`${pageName}-page`);
+      if (targetPage) {
+        targetPage.classList.remove('hidden');
+      }
+      
+      // 更新导航高亮
+      document.querySelectorAll('nav a').forEach(link => {
+        link.classList.remove('text-secondary', 'font-bold');
+        if (link.getAttribute('href') === `#${pageName}`) {
+          link.classList.add('text-secondary', 'font-bold');
+        }
+      });
+      
+      // 页面初始化逻辑
+      if (pageName === 'shop') {
+        initShopPage();
+      } else if (pageName === 'game') {
+        initGamePage();
+      }
+    }
+    
+    // 更新总局数显示
+    function updateTotalRoundsDisplay() {
+      const gameState = getGameState();
+      const totalRounds = getTotalRounds(gameState);
+      const totalRoundsDisplayEl = document.getElementById('total-rounds-display');
+      if (totalRoundsDisplayEl) {
+        totalRoundsDisplayEl.textContent = totalRounds;
+      }
+      
+      // 更新下一局显示
+      const nextRoundNumberEl = document.getElementById('next-round-number');
+      if (nextRoundNumberEl) {
+        const currentRound = gameState.currentRound || 1;
+        nextRoundNumberEl.textContent = currentRound + 1 > totalRounds ? totalRounds : currentRound + 1;
+      }
+    }
+    
+    // ========== 游戏页面初始化 ==========
+    function initGamePage() {
+      const gameState = getGameState();
+      
+      // 更新总局数显示
+      updateTotalRoundsDisplay();
+      
+      // 初始化UI状态
+      document.getElementById('total-score').textContent = gameState.totalScore || 0;
+      document.getElementById('current-round').textContent = gameState.currentRound || 1;
+      document.getElementById('current-subround').textContent = `第${gameState.currentSubround || 1}小局`;
+      document.getElementById('required-score').textContent = ROUND_REQUIREMENTS[(gameState.currentRound || 1) - 1];
+      
+      // 更新当前进度显示
+      const required = ROUND_REQUIREMENTS[(gameState.currentRound || 1) - 1];
+      const roundStatusEl = document.getElementById('round-status');
+      if (roundStatusEl) {
+        if ((gameState.totalScore || 0) >= required) {
+          roundStatusEl.className = 'text-xs mt-1 px-2 py-1 rounded-full bg-success/20 text-success';
+          roundStatusEl.textContent = `已达标（${gameState.totalScore || 0}/${required}）`;
+        } else {
+          roundStatusEl.className = 'text-xs mt-1 px-2 py-1 rounded-full bg-warning/20 text-warning';
+          roundStatusEl.textContent = `未达标（${gameState.totalScore || 0}/${required}）`;
+        }
+      }
+      
+      // 渲染手牌和预计算
+      renderPlayerHand(gameState);
+      updateSelectedCardsUI(gameState);
+      updatePreCalculationUI(gameState);
+      
+      // 按钮状态
+      document.getElementById('start-game').classList.toggle('hidden', gameState.gameStarted);
+      document.getElementById('confirm-cards').classList.toggle('hidden', !gameState.gameStarted || gameState.isSubroundConfirmed);
+      
+      // 根据游戏状态设置下一小局和下一大局按钮的显示状态
+      const nextSubBtn = document.getElementById('next-subround');
+      const nextRoundBtn = document.getElementById('next-round');
+      
+      if (nextSubBtn) {
+        // 只有在当前小局已确认且不是最后一小局时才显示下一小局按钮
+        if (gameState.isSubroundConfirmed && gameState.currentSubround < getSubroundsPerRound(gameState)) {
+          nextSubBtn.classList.remove('hidden');
+        } else {
+          nextSubBtn.classList.add('hidden');
+        }
+      }
+      
+      if (nextRoundBtn) {
+        // 只有在当前小局已确认且是最后一小局时才显示下一大局按钮
+        if (gameState.isSubroundConfirmed && gameState.currentSubround >= getSubroundsPerRound(gameState)) {
+          nextRoundBtn.classList.remove('hidden');
+        } else {
+          nextRoundBtn.classList.add('hidden');
+        }
+      }
+    }
+
+    // ========== 商城页面初始化 ==========
+    function initShopPage() {
+      let gameState = getGameState();
+      
+      // 如果商店还没有商品，先刷新商店
+      if (!gameState.shopItems || gameState.shopItems.length === 0) {
+        gameState = refreshShopItems(gameState);
+      }
+      
+      // 更新余额显示
+      document.getElementById('shop-balance').textContent = gameState.totalScore || 0;
+      
+      // 更新道具计数显示
+      document.getElementById('item-count').textContent = gameState.ownedItemsCount || gameState.ownedItems?.length || 0;
+      
+      // 更新最大道具数量信息
+      const maxItemsInfoEl = document.getElementById('max-items-info');
+      if (maxItemsInfoEl) {
+        maxItemsInfoEl.textContent = `/ ${gameState.MAX_OWNED_ITEMS || 6}`;
+      }
+      
+      // 更新总局数显示
+      updateTotalRoundsDisplay();
+      
+      // 渲染道具列表
+      renderShopItems(gameState);
+      renderOwnedItems(gameState);
+    }
+
+    // ========== 事件绑定 ==========
+    // 绑定游戏核心事件
+    function bindGameEvents() {
+      // 开始游戏
+      const startBtn = document.getElementById('start-game');
+      if (startBtn) {
+        startBtn.addEventListener('click', startGame);
+      }
+      
+      // 确认选牌
+      const confirmBtn = document.getElementById('confirm-cards');
+      if (confirmBtn) {
+        confirmBtn.addEventListener('click', confirmSelectedCards);
+      }
+      
+      // 下一小局
+      const nextSubBtn = document.getElementById('next-subround');
+      if (nextSubBtn) {
+        nextSubBtn.addEventListener('click', nextSubround);
+      }
+      
+      // 下一大局
+      const nextRoundBtn = document.getElementById('next-round');
+      if (nextRoundBtn) {
+        nextRoundBtn.addEventListener('click', nextRound);
+      }
+      
+      // 重新开始游戏
+      const restartBtn = document.getElementById('restart-game');
+      if (restartBtn) {
+        restartBtn.addEventListener('click', () => {
+          if (confirm('确定要重新开始游戏吗？当前积分和道具将会清空！')) {
+            resetGameState();
+            initGamePage();
+            showToast('游戏已重置！', 'info');
+          }
+        });
+      }
+      
+      // 弹窗重新开始
+      const modalRestartBtn = document.getElementById('modal-restart');
+      if (modalRestartBtn) {
+        modalRestartBtn.addEventListener('click', () => {
+          resetGameState();
+          document.getElementById('game-modal').classList.add('hidden');
+          initGamePage();
+          showToast('游戏已重置！', 'info');
+        });
+      }
+      
+      // 绑定手牌点击事件（事件委托）
+      document.getElementById('player-hand').addEventListener('click', (e) => {
+        console.log('Player hand clicked, target:', e.target);
+        const cardEl = e.target.closest('.card-element');
+        console.log('Card element found:', cardEl);
+        if (cardEl && cardEl.dataset.index) {
+          console.log('Calling toggleCardSelection with index:', cardEl.dataset.index);
+          toggleCardSelection(parseInt(cardEl.dataset.index));
+        }
+      });
+    }
+
+    // 绑定商城事件
+    function bindShopEvents() {
+      // 购买按钮事件委托
+      document.getElementById('shop-items').addEventListener('click', (e) => {
+        if (e.target.closest('.buy-item')) {
+          const itemId = e.target.closest('.buy-item').dataset.id;
+          handleBuyItem(itemId);
+        }
+      });
+      
+      // 出售按钮事件委托
+      document.getElementById('owned-items').addEventListener('click', (e) => {
+        if (e.target.closest('.sell-item') || e.target.closest('.sell-item-sidebar')) {
+          const itemId = e.target.closest('.sell-item')?.dataset.id || e.target.closest('.sell-item-sidebar')?.dataset.id;
+          if (itemId) {
+            handleSellItem(itemId);
+          }
+        }
+      });
+      
+      // 刷新商品
+      document.getElementById('refresh-shop').addEventListener('click', () => {
+        const gameState = getGameState();
+        refreshShopItems(gameState);
+      });
+    }
+
+    // 购买道具
+    function handleBuyItem(itemId) {
+      const gameStateBefore = getGameState();
+      const balanceBefore = gameStateBefore.totalScore || 0;
+      
+      buyItem(itemId);
+      
+      // 更新总局数显示（因为可能购买了贪婪的恶魔道具）
+      updateTotalRoundsDisplay();
+      
+      // 如果购买的是一次性道具，更新积分显示
+      const gameStateAfter = getGameState();
+      const balanceAfter = gameStateAfter.totalScore || 0;
+      
+      if (balanceAfter !== balanceBefore) {
+        document.getElementById('shop-balance').textContent = balanceAfter;
+        document.getElementById('total-score').textContent = balanceAfter;
+      }
+    }
+
+    // 出售道具
+    function handleSellItem(itemId) {
+      const gameStateBefore = getGameState();
+      const balanceBefore = gameStateBefore.totalScore || 0;
+      
+      sellItem(itemId);
+      
+      // 更新总局数显示（因为可能出售了贪婪的恶魔道具）
+      updateTotalRoundsDisplay();
+      
+      // 如果出售的是一次性道具，更新积分显示
+      const gameStateAfter = getGameState();
+      const balanceAfter = gameStateAfter.totalScore || 0;
+      
+      if (balanceAfter !== balanceBefore) {
+        document.getElementById('shop-balance').textContent = balanceAfter;
+        document.getElementById('total-score').textContent = balanceAfter;
+      }
+    }
+
+    // ========== 页面初始化 ==========
+    document.addEventListener('DOMContentLoaded', () => {
+      // 初始化游戏状态
+      if (!sessionStorage.getItem('gameState')) {
+        initGameState();
+      }
+      
+      // 绑定事件
+      bindGameEvents();
+      bindShopEvents();
+      
+      // 初始化路由
+      initRouter();
+      
+      // 初始化游戏页
+      initGamePage();
+      
+      // 显示欢迎提示
+      setTimeout(() => {
+        showToast('欢迎来到小丑牌游戏！点击"开始游戏"开始你的挑战', 'info');
+      }, 1000);
+    });
+  </script>
+</body>
+</html>
